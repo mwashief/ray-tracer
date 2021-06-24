@@ -7,6 +7,20 @@
 #include <GL/glut.h>
 #define PI 3.141592653589793238
 using namespace std;
+ofstream check;
+double determinant(vector<vector<double>> &mat)
+{
+
+    double res = 0;
+    for (int i = 0; i < 3; i++)
+    {
+        int j = (i + 1) % 3;
+        int k = (i + 2) % 3;
+        res += mat[0][i] * (mat[1][j] * mat[2][k] - mat[1][k] * mat[2][j]);
+    }
+
+    return res;
+}
 
 class Vector
 {
@@ -181,7 +195,7 @@ public:
             {
                 int k = (j + 1) % sphere[i].size();
 
-                glColor3f(floor(color.x * 255), floor(color.y * 255), floor(color.z * 255));
+                glColor3f(color.x, color.y, color.z);
                 glBegin(GL_QUADS);
                 {
                     glVertex3f(sphere[i][j].x, sphere[i][j].y, sphere[i][j].z);
@@ -238,7 +252,7 @@ public:
             int now = start;
             for (double x = -range; x < range; x += tileWidth)
             {
-                glColor3f(now * 255, now * 255, now * 255);
+                glColor3f(now, now, now);
                 glBegin(GL_QUADS);
                 {
                     glVertex3f(x, y, 0);
@@ -280,13 +294,59 @@ public:
     Point corners[3];
     void draw()
     {
-        glColor3f(floor(color.x * 255), floor(color.y * 255), floor(color.z * 255));
+        glColor3f(color.x, color.y, color.z);
         glBegin(GL_TRIANGLES);
         {
             for (int i = 0; i < 3; i++)
                 glVertex3f(corners[i].x, corners[i].y, corners[i].z);
         }
         glEnd();
+    }
+    double intersect(Ray *ray, Point *c, int level)
+    {
+
+        vector<vector<double>> mat(3, vector<double>(3, 0.0));
+
+        mat[0][0] = corners[0].x - corners[1].x;
+        mat[0][1] = corners[0].x - corners[2].x;
+        mat[0][2] = ray->dir.x;
+
+        mat[1][0] = corners[0].y - corners[1].y;
+        mat[1][1] = corners[0].y - corners[2].y;
+        mat[1][2] = ray->dir.y;
+
+        mat[2][0] = corners[0].z - corners[1].z;
+        mat[2][1] = corners[0].z - corners[2].z;
+        mat[2][2] = ray->dir.z;
+        double A = determinant(mat);
+        if (abs(A) < 1e-9)
+            return -1.0;
+
+        vector<double> column(3);
+        column[0] = corners[0].x - ray->start.x;
+        column[1] = corners[0].y - ray->start.y;
+        column[2] = corners[0].z - ray->start.z;
+        vector<double> res;
+        for (int j = 0; j < 3; j++)
+        {
+            vector<double> temp(3);
+            for (int i = 0; i < 3; i++)
+            {
+                temp[i] = mat[i][j];
+                mat[i][j] = column[i];
+            }
+            res.push_back(determinant(mat) / A);
+
+            for (int i = 0; i < 3; i++)
+                mat[i][j] = temp[i];
+        }
+        if (res[0] + res[1] > 1.0 || res[0] < 0.0 || res[1] < 0.0)
+            return -1.0;
+        c->x = color.x;
+        c->y = color.y;
+        c->z = color.z;
+
+        return res[2];
     }
 
     istream &takeInput(istream &is)

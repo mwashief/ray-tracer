@@ -3,12 +3,17 @@
         {
             "type": "cppbuild",
             "label": "C/C++: g++.exe build active file",
-            "command": "C:\\Program Files\\CodeBlocks\\MinGW\\bin\\g++.exe",
+            "command": "\"c:\\MinGW\\bin\\g++.exe\"",
             "args": [
                 "-g",
                 "${file}",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "-lglut32",
+                "-lglu32",
+                "-lopengl32",
+                "-lwinmm",
+                "-lgdi32"
             ],
             "options": {
                 "cwd": "${fileDirname}"

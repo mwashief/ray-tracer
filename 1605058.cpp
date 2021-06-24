@@ -42,12 +42,12 @@ using mii = map<int, int>;
 using tddd = tuple<double, double, double>;
 
 ifstream scene;
-int recursionLevel, dimension, drawaxes;
+int recursionLevel, dimension, drawaxes, height, width;
 int toggleOutline = 0;
 int iniX, iniY;
 bool fullScreen = 0;
-Point cameraPosition(-200, -100, 0);
-Vector gaze(3, 1, 0), tempGaze, head(0, 0, 1), tempHead;
+Point cameraPosition(0, -100, 50);
+Vector gaze(0, 1, 0), tempGaze, head(0, 0, 1), tempHead;
 vector<Object *> objects;
 vector<Light> lights;
 
@@ -89,6 +89,20 @@ void drawSS()
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     for (auto object : objects)
         object->draw();
+
+    for (Light &light : lights)
+    {
+        glColor3f(floor(light.color.x * 255), floor(light.color.y * 255), floor(light.color.z * 255));
+        glBegin(GL_QUADS);
+        {
+            glVertex3f(light.position.x - .5, light.position.y + .5, light.position.z);
+            glVertex3f(light.position.x + .5, light.position.y + .5, light.position.z);
+            glVertex3f(light.position.x + .5, light.position.y - .5, light.position.z);
+            glVertex3f(light.position.x - .5, light.position.y - .5, light.position.z);
+        }
+
+        glEnd();
+    }
 }
 
 void capture()
@@ -110,13 +124,13 @@ void capture()
             dir = dir.getUnitAlong();
             Ray ray(cameraPosition, dir);
 
-            double t = 999999999999.0;
+            double t = 1e9;
             Point color(0, 0, 0);
             for (auto obj : objects)
             {
                 Point c;
                 double temp = obj->intersect(&ray, &c, 0);
-                if (temp < 0)
+                if (temp <= 0.0 || temp >= 1000.0)
                     continue;
                 if (temp < t)
                 {
