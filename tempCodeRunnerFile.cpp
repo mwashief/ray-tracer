@@ -1,1 +1,0 @@
-floor(triangle.color.x * 255)
