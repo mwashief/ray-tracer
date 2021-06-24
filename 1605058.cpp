@@ -9,6 +9,7 @@
 #include <windows.h>
 #include <GL/glut.h>
 #include "1605058_header.h"
+#include "bitmap_image.hpp"
 
 using namespace std;
 
@@ -48,6 +49,7 @@ bool fullScreen = 0;
 Point cameraPosition(-200, -100, 0);
 Vector gaze(3, 1, 0), tempGaze, head(0, 0, 1), tempHead;
 vector<Object *> objects;
+vector<Light> lights;
 
 Vector getRight()
 {
@@ -87,6 +89,48 @@ void drawSS()
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     for (auto object : objects)
         object->draw();
+}
+
+void capture()
+{
+    double planeDistance = dimension / 2.0 / tan(PI * 35 / 180);
+    auto left = getLeft();
+    auto right = getRight();
+    auto topLeft = cameraPosition + gaze * planeDistance + left * (dimension / 2.0) + head * (dimension / 2.0);
+    double du = 1.0, dv = 1.0;
+    topLeft = topLeft + right * (.5 * du) - head * (.5 * dv);
+
+    bitmap_image image(dimension, dimension);
+    for (int i = 0; i < dimension; i++)
+    {
+        auto current = topLeft;
+        for (int j = 0; j < dimension; j++)
+        {
+            auto dir = current - cameraPosition;
+            dir = dir.getUnitAlong();
+            Ray ray(cameraPosition, dir);
+
+            double t = 999999999999.0;
+            Point color(0, 0, 0);
+            for (auto obj : objects)
+            {
+                Point c;
+                double temp = obj->intersect(&ray, &c, 0);
+                if (temp < 0)
+                    continue;
+                if (temp < t)
+                {
+                    t = temp;
+                    color = c;
+                }
+            }
+            image.set_pixel(j, i, floor(255 * color.x), floor(255 * color.y), floor(255 * color.z));
+            current = current + right * du;
+        }
+        topLeft = topLeft - head * dv;
+    }
+    image.save_image("scene.bmp");
+    cout << "Image generation done" << endl;
 }
 
 void keyboardListener(unsigned char key, int x, int y)
@@ -134,6 +178,11 @@ void keyboardListener(unsigned char key, int x, int y)
     {
         head = head + getRight() * .005;
         head = head.getUnitAlong();
+        break;
+    }
+    case '0':
+    {
+        capture();
         break;
     }
     case ']':
@@ -306,7 +355,7 @@ void reshape(int w, int h)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glViewport(0, 0, w, h);
-    gluPerspective(45, ratio, 1, 1000);
+    gluPerspective(70, ratio, 1, 1000);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -315,27 +364,31 @@ void loadData()
     scene >> recursionLevel >> dimension;
     int objectCount, lightSources;
     scene >> objectCount;
+    Object *obj;
     for (int object = 0; object < objectCount; object++)
     {
         string objectType;
         scene >> objectType;
         if (objectType == "sphere")
-        {
-            Object *obj = new Sphere();
-            scene >> *obj;
-            objects.push_back(obj);
-        }
+            obj = new Sphere();
         else if (objectType == "triangle")
-        {
-        }
+            obj = new Triangle();
         else
-        {
-        }
+            obj = new Quadric();
+        scene >> *obj;
+        objects.push_back(obj);
     }
     scene >> lightSources;
-    for (int light = 0; light < lightSources; light++)
+    while (lightSources--)
     {
+        Light light;
+        scene >> light;
+        lights.push_back(light);
     }
+
+    obj = new Floor();
+    obj->shine = 5;
+    objects.push_back(obj);
 }
 
 int main(int argc, char **argv)
