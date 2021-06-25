@@ -6,6 +6,8 @@
 #include <windows.h>
 #include <GL/glut.h>
 #define PI 3.141592653589793238
+#define HALFPI 1.570796327
+#define BUFFER_LENGTH 50
 using namespace std;
 ofstream check;
 double determinant(vector<vector<double>> &mat)
@@ -126,19 +128,6 @@ public:
     }
 };
 
-class Light
-{
-public:
-    Point position, color;
-    friend istream &operator>>(istream &is, Light &light)
-    {
-        is >> light.position >> light.color;
-        return is;
-    }
-};
-
-extern vector<Light> lights;
-
 class Ray
 {
 public:
@@ -186,6 +175,46 @@ public:
 };
 
 extern vector<Object *> objects;
+
+class Light
+{
+public:
+    Point position, color;
+    vector<vector<double>> buffer;
+
+    friend istream &operator>>(istream &is, Light &light)
+    {
+        is >> light.position >> light.color;
+        return is;
+    }
+
+    bool nearestObject(const Point &p)
+    {
+        Object *res = 0;
+        double d = 2000;
+        Vector dir(p.x - position.x, p.y - position.y, p.z - position.z);
+        dir = dir.getUnitAlong();
+        Ray ray(position, dir);
+        Point dummy;
+        for (Object *object : objects)
+        {
+            double dist = object->intersect(&ray, &dummy, 0);
+            if (dist < 0)
+                continue;
+            if (dist < d)
+            {
+                res = object;
+                d = dist;
+            }
+        }
+        double actual = sqrt(pow(p.x - position.x, 2) + pow(p.y - position.y, 2) + pow(p.z - position.z, 2));
+        if (actual <= d + 1e-2)
+            return true;
+
+        return false;
+    }
+};
+extern vector<Light> lights;
 
 class Sphere : public Object
 {
@@ -256,6 +285,8 @@ public:
 
         for (Light &light : lights)
         {
+            if (!light.nearestObject(Q))
+                continue;
             Vector V = light.position - Q;
             V = V.getUnitAlong();
             c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);
@@ -383,6 +414,8 @@ public:
 
         for (Light &light : lights)
         {
+            if (!light.nearestObject(Q))
+                continue;
             Vector V = light.position - Q;
             V = V.getUnitAlong();
             c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);
@@ -505,6 +538,8 @@ public:
 
         for (Light &light : lights)
         {
+            if (!light.nearestObject(Q))
+                continue;
             Vector V = light.position - Q;
             V = V.getUnitAlong();
             c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);
@@ -666,6 +701,8 @@ public:
 
         for (Light &light : lights)
         {
+            if (!light.nearestObject(Q))
+                continue;
             Vector V = light.position - Q;
             V = V.getUnitAlong();
             c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);

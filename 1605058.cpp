@@ -46,8 +46,8 @@ int recursionLevel, dimension, drawaxes, height, width;
 int toggleOutline = 0;
 int iniX, iniY;
 bool fullScreen = 0;
-Point cameraPosition(-100, 100, 50);
-Vector gaze(1, -1, 0), tempGaze, head(0, 0, 1), tempHead;
+Point cameraPosition(-200, 0, 50);
+Vector gaze(1, 0, 0), tempGaze, head(0, 0, 1), tempHead;
 vector<Object *> objects;
 vector<Light> lights;
 
@@ -129,7 +129,7 @@ void capture()
             for (auto obj : objects)
             {
                 Point c;
-                double temp = obj->intersect(&ray, &c, 3);
+                double temp = obj->intersect(&ray, &c, recursionLevel);
                 if (temp <= 0.0 || temp >= 1000.0)
                     continue;
                 if (temp < t)
@@ -395,6 +395,14 @@ void loadData()
         scene >> *obj;
         objects.push_back(obj);
     }
+    obj = new Floor();
+    obj->coEfficients[0] = 0.5;
+    obj->coEfficients[1] = 0.25;
+    obj->coEfficients[2] = 0.25;
+    obj->coEfficients[3] = 0.25;
+    obj->shine = 10;
+    objects.push_back(obj);
+
     scene >> lightSources;
     while (lightSources--)
     {
@@ -402,14 +410,6 @@ void loadData()
         scene >> light;
         lights.push_back(light);
     }
-
-    obj = new Floor();
-    obj->coEfficients[0] = 0.4;
-    obj->coEfficients[1] = 0.2;
-    obj->coEfficients[2] = 0.2;
-    obj->coEfficients[3] = 0.2;
-    obj->shine = 10;
-    objects.push_back(obj);
 }
 
 int main(int argc, char **argv)
