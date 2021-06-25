@@ -138,6 +138,9 @@ void capture()
                     color = c;
                 }
             }
+            color.x = min(1.0, color.x);
+            color.y = min(1.0, color.y);
+            color.z = min(1.0, color.z);
             image.set_pixel(j, i, floor(255 * color.x), floor(255 * color.y), floor(255 * color.z));
             current = current + right * du;
         }
