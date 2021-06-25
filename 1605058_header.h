@@ -625,31 +625,39 @@ public:
         if (abs(a) < 1e-9 || ac4 > bSquare)
             return -1.0;
         bSquare = sqrt(bSquare - ac4);
-        double t = (-b + bSquare) / (2.0 * a);
-        double t2 = (-b - bSquare) / (2.0 * a);
+        vector<double> tt;
+        tt.push_back((-b + bSquare) / (2.0 * a));
+        tt.push_back((-b - bSquare) / (2.0 * a));
+        if (tt[0] > tt[1])
+            swap(tt[0], tt[1]);
 
-        if (t > t2)
-            swap(t, t2);
-        if (t < 0)
-            t = t2;
-        if (t < 0)
-            return -1.0;
-        if (level == 0)
+        double t = -1.0;
+        for (int i = 0; i < 2; i++)
+        {
+            if (tt[i] < 0)
+                continue;
+            Point Q = ray->start + ray->dir * tt[i];
+            if (abs(dimension.x) > 1e-6 && reference.x + dimension.x < Q.x)
+                continue;
+            if (abs(dimension.y) > 1e-6 && reference.y + dimension.y < Q.y)
+                continue;
+            if (abs(dimension.z) > 1e-6 && reference.z + dimension.z < Q.z)
+                continue;
+            t = tt[i];
+            break;
+        }
+
+        if (level == 0 || t < 0)
             return t;
+
         Point Q = ray->start + ray->dir * t;
-
-        if (abs(dimension.x) > 1e-6 && reference.x + dimension.x < Q.x)
-            return -1.0;
-        if (abs(dimension.y) > 1e-6 && reference.y + dimension.y < Q.y)
-            return -1.0;
-        if (abs(dimension.z) > 1e-6 && reference.z + dimension.z < Q.z)
-            return -1.0;
-
         c->x = color.x * coEfficients[0];
         c->y = color.y * coEfficients[0];
         c->z = color.z * coEfficients[0];
         Vector N = getNormal(Q.x, Q.y, Q.z);
         N = N.getUnitAlong();
+        if (N.dot(ray->dir) > 0)
+            N = N * (-1);
         auto componentAlongN = -N.dot(ray->dir);
         auto NR = ray->dir + N * componentAlongN;
         auto R = N + NR;
