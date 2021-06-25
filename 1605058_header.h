@@ -88,6 +88,9 @@ public:
     double x, y, z;
     Point()
     {
+        this->x = 0.0;
+        this->y = 0.0;
+        this->z = 0.0;
     }
     Point(double x, double y, double z)
     {
@@ -182,6 +185,8 @@ public:
     }
 };
 
+extern vector<Object *> objects;
+
 class Sphere : public Object
 {
 public:
@@ -232,6 +237,8 @@ public:
         if (nearest > radius)
             return -1.0;
         auto tprime = sqrt(radius * radius - nearest * nearest);
+        if (tprime > tp)
+            return -1.0;
         if (level == 0)
             return tp - tprime;
         c->x = color.x * coEfficients[0];
@@ -256,6 +263,35 @@ public:
             c->y += light.color.y * coEfficients[1] * L.dot(N) + light.color.y * coEfficients[2] * pow(R.dot(V), shine);
 
             c->z += light.color.z * coEfficients[1] * L.dot(N) + light.color.z * coEfficients[2] * pow(R.dot(V), shine);
+        }
+
+        if (level > 1)
+        {
+            int nearestObject = -1;
+            double distance = 1000;
+            Ray r(Q, R);
+            for (int i = 0; i < objects.size(); i++)
+            {
+                Object *object = objects[i];
+                if (object == this)
+                    continue;
+                double dis = object->intersect(&r, &Q, 0);
+                if (dis < 0.0)
+                    continue;
+                if (dis < distance)
+                {
+                    distance = dis;
+                    nearestObject = i;
+                }
+            }
+            if (nearestObject != -1)
+            {
+                Point reflectedColor;
+                objects[nearestObject]->intersect(&r, &reflectedColor, level - 1);
+                c->x += coEfficients[3] * reflectedColor.x;
+                c->y += coEfficients[3] * reflectedColor.y;
+                c->z += coEfficients[3] * reflectedColor.z;
+            }
         }
 
         return tp - tprime;
@@ -305,9 +341,9 @@ public:
 
     double intersect(Ray *ray, Point *c, int level)
     {
-        if (ray->dir.z == 0)
-            return -1.0;
         double t = -ray->start.z / ray->dir.z;
+        if (t < 0)
+            return -1.0;
         if (level == 0)
             return t;
 
@@ -315,6 +351,7 @@ public:
         double y = ray->start.y + t * ray->dir.y;
         if (x < -tileWidth * tileCount || x > tileWidth * tileCount || y < -tileWidth * tileCount || y > tileWidth * tileCount)
             return -1.0;
+
         x += tileWidth * tileCount;
         y += tileWidth * tileCount;
         int row = floor(x / tileWidth);
@@ -348,6 +385,34 @@ public:
             c->y += light.color.y * coEfficients[1] * L.dot(N) + light.color.y * coEfficients[2] * pow(R.dot(V), shine);
 
             c->z += light.color.z * coEfficients[1] * L.dot(N) + light.color.z * coEfficients[2] * pow(R.dot(V), shine);
+        }
+        if (level > 1)
+        {
+            int nearestObject = -1;
+            double distance = 1000;
+            Ray r(Q, R);
+            for (int i = 0; i < objects.size(); i++)
+            {
+                Object *object = objects[i];
+                if (object == this)
+                    continue;
+                double dis = object->intersect(&r, &Q, 0);
+                if (dis < 0.0)
+                    continue;
+                if (dis < distance)
+                {
+                    distance = dis;
+                    nearestObject = i;
+                }
+            }
+            if (nearestObject != -1)
+            {
+                Point reflectedColor;
+                objects[nearestObject]->intersect(&r, &reflectedColor, level - 1);
+                c->x += coEfficients[3] * reflectedColor.x;
+                c->y += coEfficients[3] * reflectedColor.y;
+                c->z += coEfficients[3] * reflectedColor.z;
+            }
         }
 
         return t;
@@ -406,7 +471,7 @@ public:
             for (int i = 0; i < 3; i++)
                 mat[i][j] = temp[i];
         }
-        if (res[0] + res[1] > 1.0 || res[0] < 0.0 || res[1] < 0.0)
+        if (res[0] + res[1] > 1.0 || res[0] < 0.0 || res[1] < 0.0 || res[2] < 0)
             return -1.0;
         if (level == 0)
             return res[2];
@@ -438,6 +503,34 @@ public:
 
             c->z += light.color.z * coEfficients[1] * L.dot(N) + light.color.z * coEfficients[2] * pow(R.dot(V), shine);
         }
+        if (level > 1)
+        {
+            int nearestObject = -1;
+            double distance = 1000;
+            Ray r(Q, R);
+            for (int i = 0; i < objects.size(); i++)
+            {
+                Object *object = objects[i];
+                if (object == this)
+                    continue;
+                double dis = object->intersect(&r, &Q, 0);
+                if (dis < 0.0)
+                    continue;
+                if (dis < distance)
+                {
+                    distance = dis;
+                    nearestObject = i;
+                }
+            }
+            if (nearestObject != -1)
+            {
+                Point reflectedColor;
+                objects[nearestObject]->intersect(&r, &reflectedColor, level - 1);
+                c->x += coEfficients[3] * reflectedColor.x;
+                c->y += coEfficients[3] * reflectedColor.y;
+                c->z += coEfficients[3] * reflectedColor.z;
+            }
+        }
         return res[2];
     }
 
@@ -465,10 +558,148 @@ public:
     double polynomial[10];
     Point reference;
     Point dimension;
+    Vector getNormal(double x, double y, double z)
+    {
+        double X = 2 * polynomial[0] * x +
+                   polynomial[1] * y * y +
+                   polynomial[2] * z * z +
+                   polynomial[3] * y +
+                   polynomial[4] * z +
+                   polynomial[5] * y * z +
+                   polynomial[6] +
+                   polynomial[7] * y +
+                   polynomial[8] * z +
+                   polynomial[9];
+
+        double Y = polynomial[0] * x * x +
+                   2 * polynomial[1] * y +
+                   polynomial[2] * z * z +
+                   polynomial[3] * x +
+                   polynomial[4] * x * z +
+                   polynomial[5] * z +
+                   polynomial[6] * x +
+                   polynomial[7] +
+                   polynomial[8] * z +
+                   polynomial[9];
+
+        double Z = polynomial[0] * x * x +
+                   polynomial[1] * y * y +
+                   2 * polynomial[2] * z +
+                   polynomial[3] * x * y +
+                   polynomial[4] * y +
+                   polynomial[5] * x +
+                   polynomial[6] * x +
+                   polynomial[7] * y +
+                   polynomial[8] +
+                   polynomial[9];
+        return Vector(X, Y, Z);
+    }
+    double intersect(Ray *ray, Point *c, int level)
+    {
+        double a = polynomial[0] * ray->dir.x * ray->dir.x +
+                   polynomial[1] * ray->dir.y * ray->dir.y +
+                   polynomial[2] * ray->dir.z * ray->dir.z +
+                   polynomial[3] * ray->dir.x * ray->dir.y +
+                   polynomial[4] * ray->dir.y * ray->dir.z +
+                   polynomial[5] * ray->dir.x * ray->dir.z;
+
+        double b = 2.0 * polynomial[0] * ray->dir.x * ray->start.x +
+                   2.0 * polynomial[1] * ray->dir.y * ray->start.y +
+                   2.0 * polynomial[2] * ray->dir.z * ray->start.z +
+                   polynomial[3] * (ray->dir.x * ray->start.y + ray->dir.y * ray->start.x) +
+                   polynomial[4] * (ray->dir.y * ray->start.z + ray->dir.z * ray->start.y) +
+                   polynomial[5] * (ray->dir.x * ray->start.z + ray->dir.z * ray->start.x) +
+                   polynomial[6] * ray->dir.x +
+                   polynomial[7] * ray->dir.y +
+                   polynomial[8] * ray->dir.z;
+
+        double cons = polynomial[0] * ray->start.x * ray->start.x +
+                      polynomial[1] * ray->start.y * ray->start.y +
+                      polynomial[2] * ray->start.z * ray->start.z +
+                      polynomial[3] * ray->start.x * ray->start.y +
+                      polynomial[4] * ray->start.y * ray->start.z +
+                      polynomial[5] * ray->start.x * ray->start.z +
+                      polynomial[6] * ray->start.x +
+                      polynomial[7] * ray->start.y +
+                      polynomial[8] * ray->start.z +
+                      polynomial[9];
+        double bSquare = b * b;
+        double ac4 = 4.0 * a * cons;
+        if (abs(a) < 1e-9 || ac4 > bSquare)
+            return -1.0;
+        bSquare = sqrt(bSquare - ac4);
+        double t = (-b + bSquare) / (2.0 * a);
+        double t2 = (-b - bSquare) / (2.0 * a);
+
+        if (t > t2)
+            swap(t, t2);
+        if (t < 0)
+            t = t2;
+        if (t < 0)
+            return -1.0;
+        if (level == 0)
+            return t;
+        Point Q = ray->start + ray->dir * t;
+
+        c->x = color.x * coEfficients[0];
+        c->y = color.y * coEfficients[0];
+        c->z = color.z * coEfficients[0];
+        Vector N = getNormal(Q.x, Q.y, Q.z);
+        N = N.getUnitAlong();
+        if (N.dot(ray->dir) > 0)
+            N = N * (-1);
+        auto componentAlongN = -N.dot(ray->dir);
+        auto NR = ray->dir + N * componentAlongN;
+        auto R = N + NR;
+        R = R.getUnitAlong();
+        auto L = ray->dir * (-1);
+
+        for (Light &light : lights)
+        {
+            Vector V = light.position - Q;
+            V = V.getUnitAlong();
+            c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);
+
+            c->y += light.color.y * coEfficients[1] * L.dot(N) + light.color.y * coEfficients[2] * pow(R.dot(V), shine);
+
+            c->z += light.color.z * coEfficients[1] * L.dot(N) + light.color.z * coEfficients[2] * pow(R.dot(V), shine);
+        }
+        if (level > 1)
+        {
+            int nearestObject = -1;
+            double distance = 1000;
+            Ray r(Q, R);
+            for (int i = 0; i < objects.size(); i++)
+            {
+                Object *object = objects[i];
+                if (object == this)
+                    continue;
+                double dis = object->intersect(&r, &Q, 0);
+                if (dis < 0.0)
+                    continue;
+                if (dis < distance)
+                {
+                    distance = dis;
+                    nearestObject = i;
+                }
+            }
+            if (nearestObject != -1)
+            {
+                Point reflectedColor;
+                objects[nearestObject]->intersect(&r, &reflectedColor, level - 1);
+                c->x += coEfficients[3] * reflectedColor.x;
+                c->y += coEfficients[3] * reflectedColor.y;
+                c->z += coEfficients[3] * reflectedColor.z;
+            }
+        }
+        return t;
+    }
+
     istream &takeInput(istream &is)
     {
         for (int i = 0; i < 10; i++)
             is >> polynomial[i];
+        swap(polynomial[4], polynomial[5]);
         is >> reference >> dimension;
         cout << "A quadric surface added" << endl;
         return is;

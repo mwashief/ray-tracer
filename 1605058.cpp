@@ -46,8 +46,8 @@ int recursionLevel, dimension, drawaxes, height, width;
 int toggleOutline = 0;
 int iniX, iniY;
 bool fullScreen = 0;
-Point cameraPosition(0, -100, 50);
-Vector gaze(0, 1, 0), tempGaze, head(0, 0, 1), tempHead;
+Point cameraPosition(-100, 100, 50);
+Vector gaze(1, -1, 0), tempGaze, head(0, 0, 1), tempHead;
 vector<Object *> objects;
 vector<Light> lights;
 
@@ -129,7 +129,7 @@ void capture()
             for (auto obj : objects)
             {
                 Point c;
-                double temp = obj->intersect(&ray, &c, 0);
+                double temp = obj->intersect(&ray, &c, 3);
                 if (temp <= 0.0 || temp >= 1000.0)
                     continue;
                 if (temp < t)
