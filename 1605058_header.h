@@ -123,6 +123,19 @@ public:
     }
 };
 
+class Light
+{
+public:
+    Point position, color;
+    friend istream &operator>>(istream &is, Light &light)
+    {
+        is >> light.position >> light.color;
+        return is;
+    }
+};
+
+extern vector<Light> lights;
+
 class Ray
 {
 public:
@@ -210,9 +223,6 @@ public:
 
     double intersect(Ray *ray, Point *c, int level)
     {
-        c->x = color.x;
-        c->y = color.y;
-        c->z = color.z;
         auto r0 = center - ray->start;
         auto tp = r0.dot(ray->dir);
         auto r0Len = r0.getLength();
@@ -222,6 +232,32 @@ public:
         if (nearest > radius)
             return -1.0;
         auto tprime = sqrt(radius * radius - nearest * nearest);
+        if (level == 0)
+            return tp - tprime;
+        c->x = color.x * coEfficients[0];
+        c->y = color.y * coEfficients[0];
+        c->z = color.z * coEfficients[0];
+        auto Q = ray->start + ray->dir * (tp - tprime);
+        auto N = Q - center;
+        N = N.getUnitAlong();
+
+        auto componentAlongN = -N.dot(ray->dir);
+        auto NR = ray->dir + N * componentAlongN;
+        auto R = N + NR;
+        R = R.getUnitAlong();
+        auto L = ray->dir * (-1);
+
+        for (Light &light : lights)
+        {
+            Vector V = light.position - Q;
+            V = V.getUnitAlong();
+            c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);
+
+            c->y += light.color.y * coEfficients[1] * L.dot(N) + light.color.y * coEfficients[2] * pow(R.dot(V), shine);
+
+            c->z += light.color.z * coEfficients[1] * L.dot(N) + light.color.z * coEfficients[2] * pow(R.dot(V), shine);
+        }
+
         return tp - tprime;
     }
 
@@ -272,8 +308,13 @@ public:
         if (ray->dir.z == 0)
             return -1.0;
         double t = -ray->start.z / ray->dir.z;
+        if (level == 0)
+            return t;
+
         double x = ray->start.x + t * ray->dir.x;
         double y = ray->start.y + t * ray->dir.y;
+        if (x < -tileWidth * tileCount || x > tileWidth * tileCount || y < -tileWidth * tileCount || y > tileWidth * tileCount)
+            return -1.0;
         x += tileWidth * tileCount;
         y += tileWidth * tileCount;
         int row = floor(x / tileWidth);
@@ -281,9 +322,34 @@ public:
         int column = floor(y / tileWidth);
         column = column & 1;
         int color = row ^ column;
-        c->x = color;
-        c->y = color;
-        c->z = color;
+        x -= tileWidth * tileCount;
+        y -= tileWidth * tileCount;
+
+        c->x = color * coEfficients[0];
+        c->y = color * coEfficients[0];
+        c->z = color * coEfficients[0];
+        Point Q(x, y, 0);
+        Vector N(0, 0, 1);
+        if (ray->start.z < 0)
+            N.z = -1;
+        N = N.getUnitAlong();
+        auto componentAlongN = -N.dot(ray->dir);
+        auto NR = ray->dir + N * componentAlongN;
+        auto R = N + NR;
+        R = R.getUnitAlong();
+        auto L = ray->dir * (-1);
+
+        for (Light &light : lights)
+        {
+            Vector V = light.position - Q;
+            V = V.getUnitAlong();
+            c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);
+
+            c->y += light.color.y * coEfficients[1] * L.dot(N) + light.color.y * coEfficients[2] * pow(R.dot(V), shine);
+
+            c->z += light.color.z * coEfficients[1] * L.dot(N) + light.color.z * coEfficients[2] * pow(R.dot(V), shine);
+        }
+
         return t;
     }
 };
@@ -342,10 +408,36 @@ public:
         }
         if (res[0] + res[1] > 1.0 || res[0] < 0.0 || res[1] < 0.0)
             return -1.0;
-        c->x = color.x;
-        c->y = color.y;
-        c->z = color.z;
+        if (level == 0)
+            return res[2];
 
+        c->x = color.x * coEfficients[0];
+        c->y = color.y * coEfficients[0];
+        c->z = color.z * coEfficients[0];
+
+        Point Q = ray->start + ray->dir * res[2];
+        Vector X = corners[2] - corners[0];
+        Vector Y = corners[1] - corners[0];
+        Vector N = X * Y;
+        N = N.getUnitAlong();
+        if (N.dot(ray->dir) > 0)
+            N = N * (-1);
+        auto componentAlongN = -N.dot(ray->dir);
+        auto NR = ray->dir + N * componentAlongN;
+        auto R = N + NR;
+        R = R.getUnitAlong();
+        auto L = ray->dir * (-1);
+
+        for (Light &light : lights)
+        {
+            Vector V = light.position - Q;
+            V = V.getUnitAlong();
+            c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);
+
+            c->y += light.color.y * coEfficients[1] * L.dot(N) + light.color.y * coEfficients[2] * pow(R.dot(V), shine);
+
+            c->z += light.color.z * coEfficients[1] * L.dot(N) + light.color.z * coEfficients[2] * pow(R.dot(V), shine);
+        }
         return res[2];
     }
 
@@ -379,17 +471,6 @@ public:
             is >> polynomial[i];
         is >> reference >> dimension;
         cout << "A quadric surface added" << endl;
-        return is;
-    }
-};
-
-class Light
-{
-public:
-    Point position, color;
-    friend istream &operator>>(istream &is, Light &light)
-    {
-        is >> light.position >> light.color;
         return is;
     }
 };

@@ -401,7 +401,11 @@ void loadData()
     }
 
     obj = new Floor();
-    obj->shine = 5;
+    obj->coEfficients[0] = 0.4;
+    obj->coEfficients[1] = 0.2;
+    obj->coEfficients[2] = 0.2;
+    obj->coEfficients[3] = 0.2;
+    obj->shine = 10;
     objects.push_back(obj);
 }
 
