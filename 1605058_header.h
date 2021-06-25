@@ -678,6 +678,12 @@ public:
                 continue;
             if (abs(dimension.z) > 1e-6 && reference.z + dimension.z < Q.z)
                 continue;
+            if (abs(dimension.x) > 1e-6 && reference.x > Q.x)
+                continue;
+            if (abs(dimension.y) > 1e-6 && reference.y > Q.y)
+                continue;
+            if (abs(dimension.z) > 1e-6 && reference.z > Q.z)
+                continue;
             t = tt[i];
             break;
         }
