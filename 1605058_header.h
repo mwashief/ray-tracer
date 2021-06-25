@@ -293,6 +293,11 @@ public:
                 c->z += coEfficients[3] * reflectedColor.z;
             }
         }
+        /*
+        c->x = min(1.0, c->x);
+        c->y = min(1.0, c->y);
+        c->z = min(1.0, c->z);
+        */
 
         return tp - tprime;
     }
@@ -414,6 +419,11 @@ public:
                 c->z += coEfficients[3] * reflectedColor.z;
             }
         }
+        /*
+        c->x = min(1.0, c->x);
+        c->y = min(1.0, c->y);
+        c->z = min(1.0, c->z);
+        */
 
         return t;
     }
@@ -531,6 +541,11 @@ public:
                 c->z += coEfficients[3] * reflectedColor.z;
             }
         }
+        /*
+        c->x = min(1.0, c->x);
+        c->y = min(1.0, c->y);
+        c->z = min(1.0, c->z);
+        */
         return res[2];
     }
 
@@ -561,37 +576,19 @@ public:
     Vector getNormal(double x, double y, double z)
     {
         double X = 2 * polynomial[0] * x +
-                   polynomial[1] * y * y +
-                   polynomial[2] * z * z +
                    polynomial[3] * y +
-                   polynomial[4] * z +
-                   polynomial[5] * y * z +
-                   polynomial[6] +
-                   polynomial[7] * y +
-                   polynomial[8] * z +
-                   polynomial[9];
-
-        double Y = polynomial[0] * x * x +
-                   2 * polynomial[1] * y +
-                   polynomial[2] * z * z +
-                   polynomial[3] * x +
-                   polynomial[4] * x * z +
                    polynomial[5] * z +
-                   polynomial[6] * x +
-                   polynomial[7] +
-                   polynomial[8] * z +
-                   polynomial[9];
+                   polynomial[6];
 
-        double Z = polynomial[0] * x * x +
-                   polynomial[1] * y * y +
-                   2 * polynomial[2] * z +
-                   polynomial[3] * x * y +
+        double Y = 2 * polynomial[1] * y +
+                   polynomial[3] * x +
+                   polynomial[4] * z +
+                   polynomial[7];
+
+        double Z = 2 * polynomial[2] * z +
                    polynomial[4] * y +
                    polynomial[5] * x +
-                   polynomial[6] * x +
-                   polynomial[7] * y +
-                   polynomial[8] +
-                   polynomial[9];
+                   polynomial[8];
         return Vector(X, Y, Z);
     }
     double intersect(Ray *ray, Point *c, int level)
@@ -641,13 +638,18 @@ public:
             return t;
         Point Q = ray->start + ray->dir * t;
 
+        if (abs(dimension.x) > 1e-6 && reference.x + dimension.x < Q.x)
+            return -1.0;
+        if (abs(dimension.y) > 1e-6 && reference.y + dimension.y < Q.y)
+            return -1.0;
+        if (abs(dimension.z) > 1e-6 && reference.z + dimension.z < Q.z)
+            return -1.0;
+
         c->x = color.x * coEfficients[0];
         c->y = color.y * coEfficients[0];
         c->z = color.z * coEfficients[0];
         Vector N = getNormal(Q.x, Q.y, Q.z);
         N = N.getUnitAlong();
-        if (N.dot(ray->dir) > 0)
-            N = N * (-1);
         auto componentAlongN = -N.dot(ray->dir);
         auto NR = ray->dir + N * componentAlongN;
         auto R = N + NR;
@@ -664,6 +666,7 @@ public:
 
             c->z += light.color.z * coEfficients[1] * L.dot(N) + light.color.z * coEfficients[2] * pow(R.dot(V), shine);
         }
+
         if (level > 1)
         {
             int nearestObject = -1;
@@ -692,6 +695,11 @@ public:
                 c->z += coEfficients[3] * reflectedColor.z;
             }
         }
+        /*
+        c->x = min(1.0, c->x);
+        c->y = min(1.0, c->y);
+        c->z = min(1.0, c->z);
+        */
         return t;
     }
 
