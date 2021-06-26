@@ -190,7 +190,6 @@ public:
 
     bool nearestObject(const Point &p)
     {
-        return true;
         Object *res = 0;
         double d = 2000;
         Vector dir(p.x - position.x, p.y - position.y, p.z - position.z);
