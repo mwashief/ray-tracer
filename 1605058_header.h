@@ -190,6 +190,7 @@ public:
 
     bool nearestObject(const Point &p)
     {
+        return true;
         Object *res = 0;
         double d = 2000;
         Vector dir(p.x - position.x, p.y - position.y, p.z - position.z);
@@ -289,6 +290,8 @@ public:
                 continue;
             Vector V = light.position - Q;
             V = V.getUnitAlong();
+            if (V.dot(N) <= 0.0)
+                continue;
             c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);
 
             c->y += light.color.y * coEfficients[1] * L.dot(N) + light.color.y * coEfficients[2] * pow(R.dot(V), shine);
@@ -418,6 +421,8 @@ public:
                 continue;
             Vector V = light.position - Q;
             V = V.getUnitAlong();
+            if (V.dot(N) <= 0.0)
+                continue;
             c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);
 
             c->y += light.color.y * coEfficients[1] * L.dot(N) + light.color.y * coEfficients[2] * pow(R.dot(V), shine);
@@ -542,6 +547,8 @@ public:
                 continue;
             Vector V = light.position - Q;
             V = V.getUnitAlong();
+            if (V.dot(N) <= 0.0)
+                continue;
             c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);
 
             c->y += light.color.y * coEfficients[1] * L.dot(N) + light.color.y * coEfficients[2] * pow(R.dot(V), shine);
@@ -711,6 +718,8 @@ public:
                 continue;
             Vector V = light.position - Q;
             V = V.getUnitAlong();
+            if (V.dot(N) <= 0.0)
+                continue;
             c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);
 
             c->y += light.color.y * coEfficients[1] * L.dot(N) + light.color.y * coEfficients[2] * pow(R.dot(V), shine);
