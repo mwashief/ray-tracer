@@ -285,11 +285,11 @@ public:
 
         for (Light &light : lights)
         {
-            if (!light.nearestObject(Q))
-                continue;
             Vector V = light.position - Q;
             V = V.getUnitAlong();
             if (V.dot(N) <= 0.0)
+                continue;
+            if (!light.nearestObject(Q))
                 continue;
             c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);
 
@@ -416,11 +416,11 @@ public:
 
         for (Light &light : lights)
         {
-            if (!light.nearestObject(Q))
-                continue;
             Vector V = light.position - Q;
             V = V.getUnitAlong();
             if (V.dot(N) <= 0.0)
+                continue;
+            if (!light.nearestObject(Q))
                 continue;
             c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);
 
@@ -542,11 +542,11 @@ public:
 
         for (Light &light : lights)
         {
-            if (!light.nearestObject(Q))
-                continue;
             Vector V = light.position - Q;
             V = V.getUnitAlong();
             if (V.dot(N) <= 0.0)
+                continue;
+            if (!light.nearestObject(Q))
                 continue;
             c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);
 
@@ -713,11 +713,11 @@ public:
 
         for (Light &light : lights)
         {
-            if (!light.nearestObject(Q))
-                continue;
             Vector V = light.position - Q;
             V = V.getUnitAlong();
             if (V.dot(N) <= 0.0)
+                continue;
+            if (!light.nearestObject(Q))
                 continue;
             c->x += light.color.x * coEfficients[1] * L.dot(N) + light.color.x * coEfficients[2] * pow(R.dot(V), shine);
 
