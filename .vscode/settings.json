@@ -1,6 +1,6 @@
 {
     "code-runner.executorMap": {
-        "cpp": "cd $dir && \"c:\\MinGW\\bin\\g++.exe\" $fileName -o $fileNameWithoutExt -lglut32 -lglu32 -lopengl32 -lwinmm -lgdi32 && $fileNameWithoutExt",
+        "cpp": "cd $dir && \"c:\\MinGW\\bin\\g++.exe\" 1605058.cpp -o 1605058 -lglut32 -lglu32 -lopengl32 -lwinmm -lgdi32 && 1605058",
     },
     "files.associations": {
         "*.asm": "assembly",
