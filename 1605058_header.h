@@ -190,6 +190,7 @@ public:
 
     bool nearestObject(const Point &p)
     {
+        return true;
         Object *res = 0;
         double d = 2000;
         Vector dir(p.x - position.x, p.y - position.y, p.z - position.z);
@@ -281,13 +282,13 @@ public:
         auto NR = ray->dir + N * componentAlongN;
         auto R = N + NR;
         R = R.getUnitAlong();
-        auto L = ray->dir * (-1);
+        auto V = ray->dir * (-1);
 
         for (Light &light : lights)
         {
-            Vector V = light.position - Q;
-            V = V.getUnitAlong();
-            if (V.dot(N) <= 0.0)
+            Vector L = light.position - Q;
+            L = L.getUnitAlong();
+            if (L.dot(N) <= 0.0)
                 continue;
             if (!light.nearestObject(Q))
                 continue;
@@ -412,13 +413,13 @@ public:
         auto NR = ray->dir + N * componentAlongN;
         auto R = N + NR;
         R = R.getUnitAlong();
-        auto L = ray->dir * (-1);
+        auto V = ray->dir * (-1);
 
         for (Light &light : lights)
         {
-            Vector V = light.position - Q;
-            V = V.getUnitAlong();
-            if (V.dot(N) <= 0.0)
+            Vector L = light.position - Q;
+            L = L.getUnitAlong();
+            if (L.dot(N) <= 0.0)
                 continue;
             if (!light.nearestObject(Q))
                 continue;
@@ -538,13 +539,13 @@ public:
         auto NR = ray->dir + N * componentAlongN;
         auto R = N + NR;
         R = R.getUnitAlong();
-        auto L = ray->dir * (-1);
+        auto V = ray->dir * (-1);
 
         for (Light &light : lights)
         {
-            Vector V = light.position - Q;
-            V = V.getUnitAlong();
-            if (V.dot(N) <= 0.0)
+            Vector L = light.position - Q;
+            L = L.getUnitAlong();
+            if (L.dot(N) <= 0.0)
                 continue;
             if (!light.nearestObject(Q))
                 continue;
@@ -709,13 +710,13 @@ public:
         auto NR = ray->dir + N * componentAlongN;
         auto R = N + NR;
         R = R.getUnitAlong();
-        auto L = ray->dir * (-1);
+        auto V = ray->dir * (-1);
 
         for (Light &light : lights)
         {
-            Vector V = light.position - Q;
-            V = V.getUnitAlong();
-            if (V.dot(N) <= 0.0)
+            Vector L = light.position - Q;
+            L = L.getUnitAlong();
+            if (L.dot(N) <= 0.0)
                 continue;
             if (!light.nearestObject(Q))
                 continue;
