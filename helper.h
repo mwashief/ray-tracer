@@ -190,6 +190,7 @@ public:
 
     bool nearestObject(const Point &p)
     {
+        return true;
         Object *res = 0;
         double d = 2000;
         Vector dir(p.x - position.x, p.y - position.y, p.z - position.z);
@@ -253,26 +254,6 @@ public:
                 glEnd();
             }
         }
-    }
-
-    Vector getRefracted(Vector N, Vector I, double miu)
-    {
-        N = N.getUnitAlong();
-        I = I.getUnitAlong();
-        double ctheta = N.dot(I);
-        double stheta = sqrt(1.0 - ctheta * ctheta);
-        double sdelta = stheta * miu;
-        if (sdelta > 1)
-            return Vector(100, 100, 100);
-        double delta = asin(sdelta);
-        Vector NI = I - N * ctheta;
-        NI = NI.getUnitAlong();
-        double NR = cos(delta) / ctheta * stheta;
-        Vector res = N - NI * (NR);
-        //cout << stheta << " " << sdelta << " " << stheta / sdelta << endl;
-        res = res.getUnitAlong();
-
-        return res;
     }
 
     double intersect(Ray *ray, Point *c, int level)
@@ -345,46 +326,7 @@ public:
                 c->y += coEfficients[3] * reflectedColor.y;
                 c->z += coEfficients[3] * reflectedColor.z;
             }
-
-            double miu = .8;
-            auto refracted1 = getRefracted(N, ray->dir * (-1), miu) * (-1);
-            if (refracted1.x <= 1.0)
-            {
-                auto outside = Q + refracted1 * (2.1 * radius);
-                Ray complimentary(outside, refracted1 * (-1));
-                auto extra = this->intersect(&complimentary, 0, 0);
-                auto QQ = Q + refracted1 * (2.1 * radius - extra);
-                auto refracted2 = getRefracted(QQ - center, refracted1, 1.0 / miu);
-
-                nearestObject = -1;
-                distance = 1000;
-                r = Ray(QQ, refracted2);
-
-                for (int i = 0; i < objects.size(); i++)
-                {
-                    Object *object = objects[i];
-                    if (object == this)
-                        continue;
-                    double dis = object->intersect(&r, &Q, 0);
-                    if (dis < 0.0)
-                        continue;
-                    if (dis < distance)
-                    {
-                        distance = dis;
-                        nearestObject = i;
-                    }
-                }
-                if (nearestObject != -1)
-                {
-                    Point refractedColor;
-                    objects[nearestObject]->intersect(&r, &refractedColor, level - 1);
-                    c->x += (1.0 - coEfficients[3]) * refractedColor.x;
-                    c->y += (1.0 - coEfficients[3]) * refractedColor.y;
-                    c->z += (1.0 - coEfficients[3]) * refractedColor.z;
-                }
-            }
         }
-
         c->x = min(1.0, c->x);
         c->y = min(1.0, c->y);
         c->z = min(1.0, c->z);
@@ -513,11 +455,9 @@ public:
                 c->z += coEfficients[3] * reflectedColor.z;
             }
         }
-
         c->x = min(1.0, c->x);
         c->y = min(1.0, c->y);
         c->z = min(1.0, c->z);
-
         return t;
     }
 };
@@ -638,7 +578,6 @@ public:
                 c->z += coEfficients[3] * reflectedColor.z;
             }
         }
-
         c->x = min(1.0, c->x);
         c->y = min(1.0, c->y);
         c->z = min(1.0, c->z);
@@ -810,11 +749,9 @@ public:
                 c->z += coEfficients[3] * reflectedColor.z;
             }
         }
-
         c->x = min(1.0, c->x);
         c->y = min(1.0, c->y);
         c->z = min(1.0, c->z);
-
         return t;
     }
 
