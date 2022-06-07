@@ -8,7 +8,7 @@
 #include <math.h>
 #include <windows.h>
 #include <GL/glut.h>
-#include "ray_tracer_header.h"
+#include "helper.h"
 #include "bitmap_image.hpp"
 
 using namespace std;
