@@ -326,12 +326,10 @@ public:
                 c->y += coEfficients[3] * reflectedColor.y;
                 c->z += coEfficients[3] * reflectedColor.z;
             }
-        }
-        /*
+
         c->x = min(1.0, c->x);
         c->y = min(1.0, c->y);
         c->z = min(1.0, c->z);
-        */
 
         return tp - tprime;
     }
@@ -457,12 +455,9 @@ public:
                 c->z += coEfficients[3] * reflectedColor.z;
             }
         }
-        /*
         c->x = min(1.0, c->x);
         c->y = min(1.0, c->y);
         c->z = min(1.0, c->z);
-        */
-
         return t;
     }
 };
@@ -583,11 +578,10 @@ public:
                 c->z += coEfficients[3] * reflectedColor.z;
             }
         }
-        /*
         c->x = min(1.0, c->x);
         c->y = min(1.0, c->y);
         c->z = min(1.0, c->z);
-        */
+
         return res[2];
     }
 
@@ -755,11 +749,9 @@ public:
                 c->z += coEfficients[3] * reflectedColor.z;
             }
         }
-        /*
         c->x = min(1.0, c->x);
         c->y = min(1.0, c->y);
         c->z = min(1.0, c->z);
-        */
         return t;
     }
 
